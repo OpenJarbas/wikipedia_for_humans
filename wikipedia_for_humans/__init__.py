@@ -14,8 +14,8 @@ _SESSION = CachedSession(backend="memory", expire_after=60, headers=HEADERS)
 def _get_page(page_name, lang="en", strict=False, auto_disambiguate=False):
     if isinstance(page_name, wikipediaapi.WikipediaPage):
         return page_name
-    wiki_wiki = wikipediaapi.Wikipedia(lang)
-    wiki_wiki._session = CachedSession(backend="memory", expire_after=60, headers=HEADERS)
+    wiki_wiki = wikipediaapi.Wikipedia(HEADERS, lang)
+    wiki_wiki._session = _SESSION
     page_py = wiki_wiki.page(page_name)
     cats = get_categories(page_py)
     if "Disambiguation pages" in cats:
