@@ -1,21 +1,17 @@
 import wikipediaapi
+import requests
 from wikipedia_for_humans.util import match_one, fuzzy_match, \
     split_sentences, summarize, remove_parentheses, singularize
 from wikipedia_for_humans.exceptions import DisambiguationError
 from quebra_frases import word_tokenize, sentence_tokenize
-from requests_cache import CachedSession
-
-HEADERS = {'User-Agent', 'wikipedia_for_humans (https://github.com/OpenJarbas/wikipedia_for_humans)'}
-_SESSION = CachedSession(backend="memory", expire_after=60, headers=HEADERS)
-
 
 
 # internal handling of wikipediaapi
 def _get_page(page_name, lang="en", strict=False, auto_disambiguate=False):
     if isinstance(page_name, wikipediaapi.WikipediaPage):
         return page_name
-    wiki_wiki = wikipediaapi.Wikipedia(lang)
-    wiki_wiki._session = CachedSession(backend="memory", expire_after=60, headers=HEADERS)
+    wiki_wiki = wikipediaapi.Wikipedia(user_agent='wikipedia_for_humans (https://github.com/OpenJarbas/wikipedia_for_humans)', 
+                                       language=lang)
     page_py = wiki_wiki.page(page_name)
     cats = get_categories(page_py)
     if "Disambiguation pages" in cats:
@@ -66,12 +62,12 @@ def _get_images(page_name, lang="en"):
               "prop": "pageimages",
               "piprop": "original",
               "format": "json"}
-    return _SESSION.get(url, params=params).json()["query"]["pages"]
+    return requests.get(url, params=params).json()["query"]["pages"]
 
 
 def _get_wikiroulette(lang="en"):
     url = f"https://{lang}.wikipedia.org/wiki/Special:Random"
-    article_url = _SESSION.get(url).url
+    article_url = requests.get(url).url
     article = article_url.replace(f"https://{lang}.wikipedia.org/wiki/", "")
     return _get_page(article, lang)
 
@@ -126,7 +122,7 @@ def search_wikipedia(query, limit=3):
               "limit": limit,
               "formatversion": 2,
               "action": "opensearch"}
-    r = _SESSION.get("https://en.wikipedia.org/w/api.php", params=params)
+    r = requests.get("https://en.wikipedia.org/w/api.php", params=params)
     _, results, _, urls = r.json()
     if len(results) == 0:
         return None
