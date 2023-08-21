@@ -2,4 +2,3 @@ requests
 wikipedia-api~=0.6.0
 inflection
 quebra_frases
-requests_cache
